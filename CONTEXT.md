@@ -60,6 +60,18 @@ scope is its own Feature test. Deciding when is later tickets' policy (review-wo
 plan downgrade).
 _Avoid_: Cancel, deactivate, suspend (the vendor's own distinct, reversible state)
 
+**LicenseIssued** / **LicenseRevoked** (ticket 11):
+Domain events fired as the LAST step of `LicenseIssuer::issue()`/`revoke()` respectively, each
+carrying the same {@see LicenseData} projection the caller itself receives (including
+`licensableType`/`licensableId`, the load-bearing fields for a consumer to decide whether an
+issued/revoked license concerns it). This package's own decoupling seam: it fires the event and
+stops — it has NO knowledge of, and makes NO direct call into, any consumer (e.g.
+`splicewire/laravel-beam-market`'s `PackageDistributionGatewayResolver` port, bound by
+`splicewire/laravel-beam-market-packages`' distribution registry). A consumer reacts entirely
+through Laravel's event dispatcher.
+_Avoid_: a direct method call from `LicenseIssuer` into any consumer package — the event pair is the
+only sanctioned seam
+
 **LicenserEntitlementGate**:
 The self-hosted binding of app ADR-0023's `EntitlementGate` contract (from `splicewire/laravel-beam-commerce`) —
 the SAME interface `DefaultEntitlementGate` (SaaS) and `FreePlanEntitlementGate` (self-hosted, no

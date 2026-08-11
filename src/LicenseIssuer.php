@@ -7,12 +7,21 @@ use LucaLongo\Licensing\Enums\LicenseStatus;
 use LucaLongo\Licensing\Models\License;
 use LucaLongo\Licensing\Models\LicenseTemplate;
 use Splicewire\Beam\Licenser\Data\LicenseData;
+use Splicewire\Beam\Licenser\Events\LicenseIssued;
+use Splicewire\Beam\Licenser\Events\LicenseRevoked;
 
 /**
  * The server/issuer role (marketplace fulfillment issues a real license — this
  * is not a phone-home-only consumer). Wraps `LucaLongo\Licensing\Models\License`
  * (`masterix21/laravel-licensing`), the only place in this package that writes
  * to that model.
+ *
+ * `issue()`/`revoke()` each fire a domain event ({@see LicenseIssued}/{@see LicenseRevoked},
+ * ticket 11) as their last step — the ONLY way any other package learns a license changed state.
+ * This package never calls into a consumer directly (e.g. it has no knowledge whatsoever of
+ * `splicewire/laravel-beam-market-packages`' distribution registry); a consumer reacts to the
+ * event and reads {@see LicenseData::$licensableType}/{@see LicenseData::$licensableId} to decide
+ * whether/how it applies.
  */
 class LicenseIssuer
 {
@@ -41,14 +50,20 @@ class LicenseIssuer
 
         $license->activate();
 
-        return LicenseData::fromLicense($license->fresh(), $licenseKey);
+        $issued = LicenseData::fromLicense($license->fresh(), $licenseKey);
+
+        event(new LicenseIssued($issued));
+
+        return $issued;
     }
 
     /**
      * Mechanism-only: mark the license revoked so the next client phone-home
-     * reflects it. Deciding WHEN to revoke is explicitly out of this ticket's
-     * scope — no caller is wired here; later tickets (review-workflow
-     * takedown, Tower plan downgrade) own that policy and will call this.
+     * reflects it, and fire {@see LicenseRevoked} so a distribution-gateway
+     * (or any other) consumer can react. Deciding WHEN to revoke is explicitly
+     * out of this ticket's scope — no caller is wired here; later tickets
+     * (review-workflow takedown, Tower plan downgrade) own that policy and
+     * will call this.
      *
      * The vendor's `LicenseStatus` enum has no `Revoked` case — the two
      * terminal-ish states are `Suspended` (implies pausable/reversible) and
@@ -65,6 +80,10 @@ class LicenseIssuer
 
         $license->cancel();
 
-        return LicenseData::fromLicense($license->fresh());
+        $revoked = LicenseData::fromLicense($license->fresh());
+
+        event(new LicenseRevoked($revoked));
+
+        return $revoked;
     }
 }

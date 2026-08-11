@@ -1,7 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use LucaLongo\Licensing\Models\License;
+use Splicewire\Beam\Licenser\Events\LicenseIssued;
+use Splicewire\Beam\Licenser\Events\LicenseRevoked;
 use Splicewire\Beam\Licenser\LicenseClient;
 use Splicewire\Beam\Licenser\LicenseIssuer;
 
@@ -74,4 +77,30 @@ it('issues, verifies, revokes, and reflects the revocation on the next phone-hom
 
     expect($secondVerification->valid)->toBeFalse()
         ->and($secondVerification->source->value)->toBe('denied');
+});
+
+/**
+ * Ticket 11: `LicenseIssuer::issue()`/`revoke()` fire `LicenseIssued`/`LicenseRevoked` as their
+ * last step — the ONLY seam a consumer package (e.g. `laravel-beam-market`'s
+ * `PackageDistributionGatewayResolver` port) reacts through. Asserts the event payload carries the
+ * same `LicenseData` projection the caller itself receives, including the licensable reference.
+ */
+it('fires LicenseIssued and LicenseRevoked carrying the same LicenseData the caller receives', function () {
+    Event::fake([LicenseIssued::class, LicenseRevoked::class]);
+
+    $issuer = app(LicenseIssuer::class);
+    $licensable = License::createWithKey();
+
+    $issued = $issuer->issue(licensable: $licensable, maxUsages: 1);
+
+    Event::assertDispatched(LicenseIssued::class, function (LicenseIssued $event) use ($issued, $licensable) {
+        return $event->license->id === $issued->id
+            && $event->license->licensableType === $licensable->getMorphClass()
+            && $event->license->licensableId === (string) $licensable->getKey();
+    });
+
+    $revoked = $issuer->revoke($issued->id);
+
+    Event::assertDispatched(LicenseRevoked::class, fn (LicenseRevoked $event) => $event->license->id === $revoked->id
+        && $event->license->status === 'cancelled');
 });
