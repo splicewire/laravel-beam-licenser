@@ -1,0 +1,45 @@
+{
+    "name": "splicewire/laravel-beam-licenser",
+    "description": "Server (issuer) + client (verifier) licensing for self-hosted Splicewire installs, wrapping masterix21/laravel-licensing and masterix21/laravel-licensing-client. LicenseIssuer issues/revokes licenses (marketplace fulfillment is a real issuer, not just a phone-home consumer); LicenseClient activates/verifies with an offline-grace window; LicenserEntitlementGate implements ADR-0023's EntitlementGate, sourced from the vendor's LicenseTemplate default_feature_restrictions. Deployment mode decides the gate: self-hosted installs bind this package's gate, SaaS installs never load it.",
+    "keywords": ["laravel", "splicewire", "beam", "licensing", "entitlements", "self-hosted"],
+    "license": "MIT",
+    "authors": [{ "name": "Stephen Rushing", "email": "stephen@rushing.dev" }],
+    "require": {
+        "php": "^8.3",
+        "ext-openssl": "*",
+        "ext-sodium": "*",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
+        "masterix21/laravel-licensing": "2.2.1",
+        "masterix21/laravel-licensing-client": "2.0.0",
+        "spatie/laravel-data": "^4.0",
+        "splicewire/laravel-beam-accounts": "*",
+        "splicewire/laravel-beam-commerce": "*",
+        "splicewire/laravel-beam-workflows": "*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^2.0|^3.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": { "psr-4": { "Splicewire\\Beam\\Licenser\\": "src/" } },
+    "autoload-dev": { "psr-4": { "Splicewire\\Beam\\Licenser\\Tests\\": "tests/" } },
+    "extra": {
+        "branch-alias": { "dev-main": "1.0.x-dev" },
+        "laravel": { "providers": ["Splicewire\\Beam\\Licenser\\BeamLicenserServiceProvider"] }
+    },
+    "repositories": [
+        { "type": "path", "url": "../*", "options": { "symlink": true } },
+        { "type": "path", "url": "../../rushing/*", "options": { "symlink": true } },
+        { "type": "path", "url": "../../schemastud/*", "options": { "symlink": true } }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": { "test": "vendor/bin/pest", "pint": "@php -d memory_limit=512M vendor/bin/pint" },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": { "pestphp/pest-plugin": true, "php-http/discovery": true }
+    }
+}
