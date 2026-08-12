@@ -12,7 +12,14 @@ Eloquent model of that name when both are imported in the same scope (a `License
 also queries the vendor model directly needs the two names to read unambiguously as "the DTO" vs "the
 row"). Carries the plain-text license key ONLY right after `LicenseIssuer::issue()` — every other
 projection (a revoke, a re-fetch) carries it null, since the vendor persists only a hash.
-_Avoid_: License (that is the vendor's own Eloquent model — never shadow it), LicenseDto
+`graceUntil` (ticket 13, splicewire-marketplace-build) surfaces the vendor's own already-live
+server-side grace concept — `License::getGraceDays()`, `expiresAt + grace_days` — for the first
+time; null when `expiresAt` is null. `LicenseIssuer::find(string $licenseId): ?LicenseData` is the
+plain read a consumer (e.g. a pause-not-cancel subscriber reading the buffer window) calls to get
+one back without touching the vendor model directly.
+_Avoid_: License (that is the vendor's own Eloquent model — never shadow it), LicenseDto, grace_until
+(this DTO's fields are camelCase like every other one here — `graceUntil`, not the ticket-prose
+snake_case)
 
 **LicenseVerificationData**:
 The client/verifier-side Data class projecting one `LicenseClient` phone-home outcome: `valid`, a

@@ -58,6 +58,21 @@ class LicenseIssuer
     }
 
     /**
+     * A plain read of an issued license by its public `uid`, projected exactly like
+     * {@see issue()}/{@see revoke()} (the plain-text key is never known outside issuance, so it
+     * always comes back null here). Ticket 13's own reason to exist: a consumer (e.g.
+     * `laravel-beam-market`'s pause-not-cancel `SellerConnectRestricted` listener) that needs
+     * `LicenseData::$graceUntil` as a buffer window has no other sanctioned way to read a license
+     * back without reaching into the vendor model directly.
+     */
+    public function find(string $licenseId): ?LicenseData
+    {
+        $license = License::where('uid', $licenseId)->first();
+
+        return $license !== null ? LicenseData::fromLicense($license) : null;
+    }
+
+    /**
      * Mechanism-only: mark the license revoked so the next client phone-home
      * reflects it, and fire {@see LicenseRevoked} so a distribution-gateway
      * (or any other) consumer can react. Deciding WHEN to revoke is explicitly

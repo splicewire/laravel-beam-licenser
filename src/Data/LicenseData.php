@@ -20,6 +20,16 @@ use Spatie\LaravelData\Data;
  * `License::createWithKey()` — the plain-text key exists in memory for that one
  * request and is never persisted or re-derivable afterward (the vendor stores
  * only a hash). Every other projection (revoke, a re-fetch) carries it null.
+ *
+ * `graceUntil` (splicewire-marketplace-build ticket 13) surfaces the vendor's own SERVER-side
+ * grace concept — `LucaLongo\Licensing\Models\License::getGraceDays()`/`gracePeriodExpired()`
+ * (`expires_at->addDays(getPolicy('grace_days'))`), already live vendor machinery — onto this
+ * DTO for the first time. Deliberately NOT the same thing as this package's own CLIENT-side
+ * offline-grace (`LicenseVerificationData::$graceExpiresAt`, timed from the first unreachable
+ * phone-home): that one is about an install that can't reach the server; `graceUntil` here is
+ * the issuer's own record of how long a license stays usable (`LicenseStatus::Grace` is
+ * `isUsable()`) past its `expiresAt` before it truly lapses to `Expired`. Null when `expiresAt`
+ * is null (a non-expiring license has no grace boundary to compute).
  */
 class LicenseData extends Data
 {
@@ -32,6 +42,7 @@ class LicenseData extends Data
         public ?string $licensableId,
         public ?string $activatedAt,
         public ?string $expiresAt,
+        public ?string $graceUntil,
         public int $maxUsages,
     ) {}
 
@@ -46,6 +57,7 @@ class LicenseData extends Data
             licensableId: $license->licensable_id !== null ? (string) $license->licensable_id : null,
             activatedAt: $license->activated_at?->toIso8601String(),
             expiresAt: $license->expires_at?->toIso8601String(),
+            graceUntil: $license->expires_at?->copy()->addDays($license->getGraceDays())->toIso8601String(),
             maxUsages: $license->max_usages,
         );
     }
