@@ -73,12 +73,22 @@ class LicenseClient
             );
         } catch (ConnectionException) {
             return $this->graceOrDenied($now);
-        } catch (LicensingException $e) {
+        } catch (LicensingException) {
             // Reachable, explicit deny — authoritative, never grace-eligible.
+            // The vendor exception's own message is never surfaced here: several
+            // of its variants interpolate raw server/HTTP response content
+            // (e.g. `activationFailed()`/`invalidConfiguration()` embed the
+            // server's `error.message`, and the generic fallback embeds
+            // `RequestException::getMessage()`, which includes the request URL
+            // and a truncated response body) — passing that through would
+            // violate this package's own documented rule (AGENTS.md ->
+            // "API errors never expose internals... no stack traces, no
+            // internal identifiers") the moment a caller like
+            // `LicenserEntitlementGate` surfaces `reason` to an end user.
             $this->clearGracePeriod();
 
             return LicenseVerificationData::denied(
-                reason: $e->getMessage(),
+                reason: 'license_denied',
                 verifiedAt: $now->toIso8601String(),
             );
         }
