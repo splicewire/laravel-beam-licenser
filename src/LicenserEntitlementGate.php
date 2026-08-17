@@ -2,7 +2,7 @@
 
 namespace Splicewire\Beam\Licenser;
 
-use Splicewire\Beam\Capabilities\ExternalCapability;
+use Splicewire\Beam\Capabilities\GatedCapability;
 use Splicewire\Beam\Commerce\Data\EntitlementDenialData;
 use Splicewire\Beam\Commerce\Entitlements\DefaultEntitlementGate;
 use Splicewire\Beam\Commerce\Entitlements\EntitlementDeniedException;
@@ -37,7 +37,7 @@ class LicenserEntitlementGate implements EntitlementGate
 {
     public function __construct(private LicenseClient $client) {}
 
-    public function authorize(Tenant $tenant, ExternalCapability|string $capability): void
+    public function authorize(Tenant $tenant, GatedCapability|string $capability): void
     {
         $response = $this->inspect($tenant, $capability);
 
@@ -46,7 +46,7 @@ class LicenserEntitlementGate implements EntitlementGate
         }
     }
 
-    public function inspect(Tenant $tenant, ExternalCapability|string $capability): GateResponse
+    public function inspect(Tenant $tenant, GatedCapability|string $capability): GateResponse
     {
         $capabilityKey = is_string($capability) ? $capability : $capability->key();
         $entitlementKey = is_string($capability) ? $capability : $capability->requiredEntitlement();

@@ -2,7 +2,7 @@
 
 namespace Splicewire\Beam\Licenser\Tests\Fixtures;
 
-use Splicewire\Beam\Capabilities\ExternalCapability;
+use Splicewire\Beam\Capabilities\GatedCapability;
 use Splicewire\Beam\Commerce\Entitlements\EntitlementGate;
 use Splicewire\Beam\Commerce\Entitlements\GateResponse;
 use Splicewire\Beam\Tenancy\Tenant;
@@ -21,12 +21,12 @@ use Splicewire\Beam\Tenancy\Tenant;
  */
 class StubSaasEntitlementGate implements EntitlementGate
 {
-    public function authorize(Tenant $tenant, ExternalCapability|string $capability): void
+    public function authorize(Tenant $tenant, GatedCapability|string $capability): void
     {
         // Intentionally inert — never exercised by the deployment-mode test.
     }
 
-    public function inspect(Tenant $tenant, ExternalCapability|string $capability): GateResponse
+    public function inspect(Tenant $tenant, GatedCapability|string $capability): GateResponse
     {
         return GateResponse::allow(is_string($capability) ? $capability : $capability->key());
     }
