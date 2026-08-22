@@ -1,9 +1,21 @@
 {
     "name": "splicewire/laravel-beam-licenser",
     "description": "Server (issuer) + client (verifier) licensing for self-hosted Splicewire installs, wrapping masterix21/laravel-licensing and masterix21/laravel-licensing-client. LicenseIssuer issues/revokes licenses (marketplace fulfillment is a real issuer, not just a phone-home consumer); LicenseClient activates/verifies with an offline-grace window; LicenserEntitlementGate implements ADR-0023's EntitlementGate, sourced from the vendor's LicenseTemplate default_feature_restrictions. Deployment mode decides the gate: self-hosted installs bind this package's gate, SaaS installs never load it.",
-    "keywords": ["laravel", "splicewire", "beam", "licensing", "entitlements", "self-hosted"],
+    "keywords": [
+        "laravel",
+        "splicewire",
+        "beam",
+        "licensing",
+        "entitlements",
+        "self-hosted"
+    ],
     "license": "MIT",
-    "authors": [{ "name": "Stephen Rushing", "email": "stephen@rushing.dev" }],
+    "authors": [
+        {
+            "name": "Stephen Rushing",
+            "email": "stephen@rushing.dev"
+        }
+    ],
     "require": {
         "php": "^8.3",
         "ext-openssl": "*",
@@ -20,26 +32,62 @@
         "splicewire/laravel-beam-workflows": "*"
     },
     "require-dev": {
+        "laravel/pint": "^1.0",
         "orchestra/testbench": "^9.0|^10.0|^11.0",
         "pestphp/pest": "^2.0|^3.0",
-        "laravel/pint": "^1.0"
+        "wikimedia/composer-merge-plugin": "^2.1"
     },
-    "autoload": { "psr-4": { "Splicewire\\Beam\\Licenser\\": "src/" } },
-    "autoload-dev": { "psr-4": { "Splicewire\\Beam\\Licenser\\Tests\\": "tests/" } },
+    "autoload": {
+        "psr-4": {
+            "Splicewire\\Beam\\Licenser\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Splicewire\\Beam\\Licenser\\Tests\\": "tests/"
+        }
+    },
     "extra": {
-        "branch-alias": { "dev-main": "1.0.x-dev" },
-        "laravel": { "providers": ["Splicewire\\Beam\\Licenser\\BeamLicenserServiceProvider"] }
+        "branch-alias": {
+            "dev-main": "1.0.x-dev"
+        },
+        "laravel": {
+            "providers": [
+                "Splicewire\\Beam\\Licenser\\BeamLicenserServiceProvider"
+            ]
+        },
+        "merge-plugin": {
+            "include": [
+                "composer.local.json"
+            ]
+        }
     },
     "repositories": [
-        { "type": "path", "url": "../*", "options": { "symlink": true } },
-        { "type": "path", "url": "../../rushing/*", "options": { "symlink": true } },
-        { "type": "path", "url": "../../schemastud/*", "options": { "symlink": true } }
+        {
+            "type": "git",
+            "url": "https://github.com/splicewire/laravel-beam-accounts.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/splicewire/laravel-beam-commerce.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/splicewire/laravel-beam-workflows.git"
+        }
     ],
     "minimum-stability": "dev",
     "prefer-stable": true,
-    "scripts": { "test": "vendor/bin/pest", "pint": "@php -d memory_limit=512M vendor/bin/pint" },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "pint": "@php -d memory_limit=512M vendor/bin/pint"
+    },
     "config": {
         "sort-packages": true,
-        "allow-plugins": { "pestphp/pest-plugin": true, "php-http/discovery": true }
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true
+        }
     }
 }
