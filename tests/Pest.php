@@ -5,3 +5,5 @@ use Splicewire\Beam\Licenser\Tests\TestCase;
 
 uses(SaasDeploymentTestCase::class)->in('Deployment');
 uses(TestCase::class)->in('Feature');
+
+uses(TestCase::class)->in('Unit');

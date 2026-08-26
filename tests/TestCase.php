@@ -7,6 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use LucaLongo\LaravelLicensingClient\LaravelLicensingClientServiceProvider;
 use LucaLongo\Licensing\LicensingServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Spatie\LaravelData\LaravelDataServiceProvider;
+use Spatie\LaravelData\Mappers\CamelCaseMapper;
 use Spatie\LaravelPackageTools\Package;
 use Splicewire\Beam\Licenser\BeamLicenserServiceProvider;
 
@@ -41,6 +43,19 @@ abstract class TestCase extends Orchestra
         return [
             LicensingServiceProvider::class,
             LaravelLicensingClientServiceProvider::class,
+
+            // Testbench does NOT auto-discover — a package harness boots exactly what this
+            // method names, while `src/` freely imports anything it can autoload. This package
+            // requires `spatie/laravel-data` and declares two Data classes
+            // ({@see \Splicewire\Beam\Licenser\Data\LicenseData},
+            // {@see \Splicewire\Beam\Licenser\Data\LicenseVerificationData}), but without this
+            // line `config('data')` is NULL inside the suite and every hydration path
+            // (`::from()`, `::validateAndCreate()`, rule derivation) FATALs — an ErrorException,
+            // not a test failure. Measured here before the fix (`config('data') === null` true).
+            // api-surface-coherence tickets 84/85; the same omission was found across thirteen
+            // sibling packages. {@see SaasDeploymentTestCase} inherits this list unchanged.
+            LaravelDataServiceProvider::class,
+
             BeamLicenserServiceProvider::class,
         ];
     }
@@ -61,6 +76,18 @@ abstract class TestCase extends Orchestra
         $c->set('licensing-client.license_key', 'LIC-TEST-0000-0000');
         $c->set('licensing-client.grace_period_days', 7);
         $c->set('licensing-client.cache.enabled', false);
+
+        // Booting LaravelDataServiceProvider alone would be a FALSE GREEN. The package ships
+        // `name_mapping_strategy.input => null`, but the only host that runs this code
+        // (`~/Herd/splicewire-app/config/data.php`) sets it to CamelCaseMapper — the ONLY
+        // semantic delta between the two files. A DTO hydrates fine under the package default
+        // and silently stops mapping under the host's mapper, so the harness mirrors the HOST,
+        // not the package default. api-surface-coherence ticket 85.
+        $c->set('data.name_mapping_strategy.input', CamelCaseMapper::class);
+
+        // Structure caching points at `app_path('Data')`, which does not exist here; a cached
+        // reflection analysis carried across runs is exactly what a harness should not have.
+        $c->set('data.structure_caching.enabled', false);
     }
 
     /**
