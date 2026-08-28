@@ -10,7 +10,7 @@ use Splicewire\Beam\Commerce\Entitlements\EntitlementGate;
  * provider binds NOTHING into the shared {@see EntitlementGate} seam unless
  * `config('beam.licenser.enabled')` is true — the same shape as
  * splicewire-app's own `config('splicewire.entitlements.free_plan')` switch in
- * `AppServiceProvider` (ADR-0154's bound-contract seam). A SaaS-hosted install
+ * `AppServiceProvider` (ADR-0212's bound-contract seam). A SaaS-hosted install
  * either never requires this package at all, or requires it but leaves the
  * flag off; either way `LicenserEntitlementGate` (and, since nothing here ever
  * resolves it lazily either, {@see LicenseClient}/{@see LicenseIssuer}) is

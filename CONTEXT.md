@@ -34,7 +34,7 @@ opposite: stays on `DefaultEntitlementGate`/the plan-tier cascade, this package'
 resolve) vs. self-hosted-with-license (`LicenserEntitlementGate` binds). Represented as one config
 switch, `beam.licenser.enabled` — read once, at `BeamLicenserServiceProvider::register()` — never a
 scattered `if (config(...))` at individual call sites. Mirrors the shape splicewire-app's own
-`AppServiceProvider` already uses for `splicewire.entitlements.free_plan` (ADR-0154's bound-contract
+`AppServiceProvider` already uses for `splicewire.entitlements.free_plan` (ADR-0212's bound-contract
 seam): a host app flips ITS OWN switch; this package never inspects environment/host state on its own
 to guess which mode it's in.
 _Avoid_: License mode, install type, hosting mode
