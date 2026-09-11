@@ -4,6 +4,7 @@ namespace Splicewire\Beam\Licenser;
 
 use Illuminate\Support\ServiceProvider;
 use Splicewire\Beam\Commerce\Entitlements\EntitlementGate;
+use Splicewire\Beam\Install\BeamInstallManifest;
 
 /**
  * Deployment-mode-decides-the-gate (this ticket's own vocabulary): this
@@ -39,5 +40,21 @@ class BeamLicenserServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/beam/licenser.php' => config_path('beam/licenser.php'),
         ], 'beam-licenser-config');
+
+        // Both vendor roles are installed with this package. Their providers publish
+        // migrations without loading them; a fresh Beam host must publish both sets.
+        // Installation is independent of the optional client entitlement gate above.
+        if ($this->app->runningInConsole() && $this->app->bound(BeamInstallManifest::class)) {
+            $this->app->make(BeamInstallManifest::class)->register(
+                package: 'splicewire/laravel-beam-licenser',
+                publishTags: [
+                    'beam-licenser-config',
+                    'licensing-migrations',
+                    'licensing-client-migrations',
+                ],
+                migrates: true,
+                order: 110,
+            );
+        }
     }
 }
