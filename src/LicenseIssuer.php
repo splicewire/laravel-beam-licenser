@@ -88,10 +88,12 @@ class LicenseIssuer
      * `validate()` denies immediately — see the server's own
      * `LicenseController::guardLicenseState()`, which 423s both `Suspended`
      * and `Cancelled`.
+     *
+     * @param  string|null  $connectionName  The license's database connection; null uses the current default.
      */
-    public function revoke(string $licenseId): LicenseData
+    public function revoke(string $licenseId, ?string $connectionName = null): LicenseData
     {
-        $license = License::where('uid', $licenseId)->firstOrFail();
+        $license = License::on($connectionName)->where('uid', $licenseId)->firstOrFail();
 
         $license->cancel();
 

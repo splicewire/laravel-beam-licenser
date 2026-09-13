@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use LucaLongo\Licensing\Models\License;
@@ -103,4 +104,26 @@ it('fires LicenseIssued and LicenseRevoked carrying the same LicenseData the cal
 
     Event::assertDispatched(LicenseRevoked::class, fn (LicenseRevoked $event) => $event->license->id === $revoked->id
         && $event->license->status === 'cancelled');
+});
+
+it('revokes on the requested connection without changing the ambient database', function () {
+    Event::fake([LicenseRevoked::class]);
+    $issuer = app(LicenseIssuer::class);
+    $issued = $issuer->issue();
+
+    config(['database.connections.unrelated' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '']]);
+    DB::setDefaultConnection('unrelated');
+
+    try {
+        $revoked = $issuer->revoke($issued->id, 'testing');
+
+        expect($revoked->status)->toBe('cancelled')
+            ->and($revoked->licenseKey)->toBeNull()
+            ->and(License::on('testing')->where('uid', $issued->id)->firstOrFail()->status->value)->toBe('cancelled')
+            ->and(DB::getDefaultConnection())->toBe('unrelated');
+        Event::assertDispatched(LicenseRevoked::class, fn (LicenseRevoked $event) => $event->license->id === $issued->id);
+    } finally {
+        DB::setDefaultConnection('testing');
+        DB::purge('unrelated');
+    }
 });
