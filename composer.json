@@ -28,14 +28,17 @@
         "masterix21/laravel-licensing-client": "2.0.0",
         "spatie/laravel-data": "^4.0",
         "splicewire/laravel-beam-accounts": "*",
-        "splicewire/laravel-beam-commerce": "*",
         "splicewire/laravel-beam-workflows": "*"
     },
     "require-dev": {
         "laravel/pint": "^1.0",
         "orchestra/testbench": "^9.0|^10.0|^11.0",
         "pestphp/pest": "^4.0",
+        "splicewire/laravel-beam-commerce": "*",
         "wikimedia/composer-merge-plugin": "^2.1"
+    },
+    "suggest": {
+        "splicewire/laravel-beam-commerce": "Supplies the EntitlementGate contract this package's self-hosted gate binds when beam.licenser.enabled is true. Without it the licence issuer and client still install, and the gate binding is skipped (extensions-live D1)."
     },
     "autoload": {
         "psr-4": {

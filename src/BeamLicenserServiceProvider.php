@@ -29,6 +29,13 @@ class BeamLicenserServiceProvider extends ServiceProvider
             return;
         }
 
+        // The EntitlementGate contract belongs to laravel-beam-commerce, which this package only
+        // suggests since extensions-live D1 (2026-09-25): a Market consumer site installs the licence
+        // client without commerce. With no contract on the classpath there is no seam to take over.
+        if (! interface_exists(EntitlementGate::class)) {
+            return;
+        }
+
         $this->app->singleton(LicenseIssuer::class);
         $this->app->singleton(LicenseClient::class);
 
