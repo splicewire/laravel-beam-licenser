@@ -4,7 +4,9 @@ namespace Splicewire\Beam\Licenser;
 
 use Illuminate\Support\ServiceProvider;
 use Splicewire\Beam\Commerce\Entitlements\EntitlementGate;
+use Splicewire\Beam\Config\ConfigSectionRegistry;
 use Splicewire\Beam\Install\BeamInstallManifest;
+use Splicewire\Beam\Licenser\Config\BeamLicenserSection;
 
 /**
  * Deployment-mode-decides-the-gate (this ticket's own vocabulary): this
@@ -24,6 +26,14 @@ class BeamLicenserServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/beam/licenser.php', 'beam.licenser');
+
+        $this->callAfterResolving(ConfigSectionRegistry::class, static function (ConfigSectionRegistry $sections): void {
+            $sections->section(
+                BeamLicenserSection::class,
+                owner: 'splicewire/laravel-beam-licenser',
+                packageFile: __DIR__.'/../config/beam/licenser.php',
+            );
+        });
 
         if (! config('beam.licenser.enabled', false)) {
             return;
